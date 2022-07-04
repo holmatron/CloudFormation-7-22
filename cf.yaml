@@ -20,20 +20,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: LindaSQS
-  Ec2Instance:
-    Type: "AWS::EC2::Instance"
-    Properties:
-      ImageId: !Ref LatestAmiId
-      InstanceType: !Ref InstanceTypeParameter
-      Tags:
-        - Key: Name
-          Value: Linda-CF
-  LindaALBInstance:
-    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
-    Properties:
-      Name: LindaALBcf
-      Scheme: internet-facing
-      Subnets: !Ref ALBSubnetList
+
   LindaALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -63,6 +50,25 @@ Resources:
       Tags:
         - Key: Name
           Value: LindaEC2SecurityGroup
+
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceTypeParameter
+      Tags:
+        - Key: Name
+          Value: Linda-CF
+      SecurityGroups:
+        - !Ref LindaEC2SecurityGroup
+  LindaALBInstance:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: LindaALBcf
+      Scheme: internet-facing
+      Subnets: !Ref ALBSubnetList
+      SecurityGroups:
+        - !Ref LindaALBSecurityGroup
 Outputs:
   ALBDNSAddress:
     Description: Gets DNS address of the ABL
