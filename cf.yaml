@@ -20,7 +20,6 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: LindaSQS
-
   LindaALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -50,7 +49,6 @@ Resources:
       Tags:
         - Key: Name
           Value: LindaEC2SecurityGroup
-
   Ec2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
@@ -69,6 +67,22 @@ Resources:
       Subnets: !Ref ALBSubnetList
       SecurityGroups:
         - !Ref LindaALBSecurityGroup
+  LindaTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      VpcId: !Ref VPC
+      TargetType: instance
+  LindaALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref LindaTargetGroup
+      LoadBalancerArn: !Ref LindaALBInstance
+      Port: 80
+      Protocol: HTTP
 Outputs:
   ALBDNSAddress:
     Description: Gets DNS address of the ABL
