@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: 2020-09-09
+Description: Academy Demo ClodFormation
+Parameters:
+  BucketName:
+    Description: Name for Bucket
+    Type: String
+    Default: Linda-s3-CF
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  Recources:
+    LindaS3CF:
+      Type: AWS::S3::Bucket
+      Properties:
+        QueueName: !Ref BucketName
+    LindaQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: LindaDemoQueue
+    LindaEC2:
+      Type: AWS::EC2::Instance
+      Properties:
+        ImageId: !Ref LatestAmiId

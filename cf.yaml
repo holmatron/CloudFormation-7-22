@@ -1,5 +1,12 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Academy Demo CloudFormation
+Parameters:
+  LatestAmiId:
+    Type: "AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>"
+    Default: "/aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2"
+  InstanceTypeParameter:
+    Type: String
+    Default: t2.micro
 Resources:
   LindaS3CF:
     Type: AWS::S3::Bucket
@@ -7,3 +14,11 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: LindaSQS
+  Ec2Instance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceTypeParameter
+      Tags:
+        - Key: Name
+          Value: Linda-CF
