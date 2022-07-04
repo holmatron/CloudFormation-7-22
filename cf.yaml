@@ -7,7 +7,9 @@ Parameters:
   ALBSubnetList:
     Type: List<AWS::EC2::Subnet::Id>
     Default: subnet-05dc5323a90701745,subnet-0462080141c44392d
-
+  VPC:
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-02f0416e2af96dc4e
   InstanceTypeParameter:
     Type: String
     Default: t2.micro
@@ -32,10 +34,6 @@ Resources:
       Name: LindaALBcf
       Scheme: internet-facing
       Subnets: !Ref ALBSubnetList
-Outputs:
-  ALBDNSAddress:
-    Description: Gets DNS address of the ABL
-    Value: !GetAtt LindaALBInstance.DNSName
   LindaALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -51,5 +49,21 @@ Outputs:
           ToPort: 443
       Tags:
         - Key: Name
-          Value: LindaSecurityGroupALB
+          Value: LindaALBSecurityGroup
       VpcId: !Ref VPC
+  LindaEC2SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow port 80 from ALB SG
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref LindaALBSecurityGroup
+          FromPort: 80
+          IpProtocol: tcp
+          ToPort: 80
+      Tags:
+        - Key: Name
+          Value: LindaEC2SecurityGroup
+Outputs:
+  ALBDNSAddress:
+    Description: Gets DNS address of the ABL
+    Value: !GetAtt LindaALBInstance.DNSName
