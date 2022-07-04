@@ -3,3 +3,7 @@ Description: Academy Demo CloudFormation
 Resources:
   LindaS3CF:
     Type: AWS::S3::Bucket
+  MyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: LindaSQS
