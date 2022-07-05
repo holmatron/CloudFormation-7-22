@@ -13,6 +13,7 @@ Parameters:
   InstanceTypeParameter:
     Type: String
     Default: t2.micro
+
 Resources:
   LindaS3CF:
     Type: AWS::S3::Bucket
@@ -20,6 +21,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       QueueName: LindaSQS
+
   LindaALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -37,6 +39,7 @@ Resources:
         - Key: Name
           Value: LindaALBSecurityGroup
       VpcId: !Ref VPC
+
   LindaEC2SecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -49,6 +52,7 @@ Resources:
       Tags:
         - Key: Name
           Value: LindaEC2SecurityGroup
+
   Ec2Instance:
     Type: "AWS::EC2::Instance"
     Properties:
@@ -59,6 +63,7 @@ Resources:
           Value: Linda-CF
       SecurityGroups:
         - !Ref LindaEC2SecurityGroup
+
   LindaALBInstance:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
@@ -67,6 +72,7 @@ Resources:
       Subnets: !Ref ALBSubnetList
       SecurityGroups:
         - !Ref LindaALBSecurityGroup
+
   LindaTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
@@ -74,6 +80,7 @@ Resources:
       Protocol: HTTP
       VpcId: !Ref VPC
       TargetType: instance
+
   LindaALBListener:
     Type: AWS::ElasticLoadBalancingV2::Listener
     Properties:
@@ -83,6 +90,38 @@ Resources:
       LoadBalancerArn: !Ref LindaALBInstance
       Port: 80
       Protocol: HTTP
+
+  LindaLaunchConfig:
+    Type: AWS::AutoScaling::LaunchConfiguration
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: t2.micro
+      SecurityGroups:
+        - !GetAtt LindaEC2SecurityGroup.GroupId
+      UserData:
+        Fn::Base64:
+          Fn::Join:
+            - "\n"
+            - - "#!/bin/bash"
+              - "amazon-linux-extras install epel"
+              - "amazon-linux-extras install nginx1"
+              - "systemctl start nginx"
+
+  LindaASG:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    Properties:
+      MinSize: 2
+      MaxSize: 2
+      DesiredCapacity: 2
+      VPCZoneIdentifier: !Ref ALBSubnetList
+      LaunchConfigurationName: !Ref LindaLaunchConfig
+      TargetGroupARNs:
+        - !Ref LindaTargetGroup
+      Tags:
+        - Key: Name
+          Value: LindaASG
+          PropagateAtLaunch: "true"
+
 Outputs:
   ALBDNSAddress:
     Description: Gets DNS address of the ABL
